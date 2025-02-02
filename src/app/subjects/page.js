@@ -1,6 +1,6 @@
 "use client";
 
-import supabase from "./supabase";
+import supabase from "../supabase";
 import {
   Card,
   CardHeader,
@@ -21,15 +21,15 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Home() {
+export default function Subjects() {
   const [userId, setUserId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [teacher, setTeacher] = useState({});
-  const [studentlist, setStudentlist] = useState([]);
-  const [grouplist, setGrouplist] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [groups, setGroups] = useState([]);
 
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isStudentlistLoaded, setIsStudentlistLoaded] = useState(false);
+  const [isSubjectsLoaded, setIsSubjectsLoaded] = useState(false);
 
   const router = useRouter();
   useEffect(() => {
@@ -63,15 +63,15 @@ export default function Home() {
   }, [userId]);
 
   useEffect(() => {
-    const getStudentlist = async () => {
-      const { data, error } = await supabase.from("student").select("*");
+    const getSubjects = async () => {
+      const { data, error } = await supabase.from("subject").select("*");
       if (error) {
         setErrorMessage(error.message);
       } else if (data) {
-        setStudentlist(data);
+        setSubjects(data);
       }
     };
-    getStudentlist();
+    getSubjects();
   }, []);
 
   useEffect(() => {
@@ -80,12 +80,12 @@ export default function Home() {
       if (error) {
         setErrorMessage(error.message);
       } else if (data) {
-        setGrouplist(data);
-        setIsStudentlistLoaded(true);
+        setGroups(data);
+        setIsSubjectsLoaded(true);
       }
     };
     getGroups();
-  }, [studentlist]);
+  }, []);
 
   return (
     <main className=" flex flex-col items-center gap-4">
@@ -95,13 +95,13 @@ export default function Home() {
             <p>Профиль учителя</p>
           </NavbarItem>
           <NavbarItem>
-            <Button isDisabled={true}>Студенты</Button>
+            <Button onPress={() => router.push("/")}>Студенты</Button>
           </NavbarItem>
           <NavbarItem>
             <Button onPress={() => router.push("/groups")}>Группы</Button>
           </NavbarItem>
           <NavbarItem>
-            <Button onPress={() => router.push("/subjects")}>Предметы</Button>
+            <Button isDisabled={true}>Предметы</Button>
           </NavbarItem>
           <NavbarItem>
             <Button onPress={() => supabase.auth.signOut()} color="danger">
@@ -110,6 +110,7 @@ export default function Home() {
           </NavbarItem>
         </NavbarContent>
       </Navbar>
+
       <section className="flex flex-col gap-2 w-[65vw]">
         {isLoaded ? (
           <h1 className="text-2xl">Добро пожаловать, {teacher.name}</h1>
@@ -118,52 +119,42 @@ export default function Home() {
         )}
         <Divider />
         <h2 className="font-bold">Статистика</h2>
-        {isStudentlistLoaded ? (
-          <p>Всего студентов: {studentlist.length}</p>
+        {isSubjectsLoaded ? (
+          <p>Всего предметов: {subjects.length}</p>
         ) : (
           <h1 className="h-6 w-52 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 animate-pulse rounded"></h1>
         )}
-      </section>
-      <div className="grid grid-cols-3 gap-4 w-[65vw]">
-        {isStudentlistLoaded ? (
-          studentlist.map((student) => (
-            <Card key={student.id} className="min-h-52">
+
+        {isSubjectsLoaded ? (
+          subjects.map((subject) => (
+            <Card key={subject.id}>
               <CardHeader>
                 <Link
-                  href={`/student/${student.id}`}
-                  key={student.id}
+                  href={`/subject/${subject.id}`}
+                  key={subject.id}
                   className="w-full"
                 >
-                  <h1 className="font-bold">Студент {student.id}</h1>
+                  <h1 className="font-bold">Дисциплина {subject.id}</h1>
                 </Link>
               </CardHeader>
               <CardBody className="gap-2">
-                <img
-                  src={student.photo_url}
-                  alt=""
-                  className="w-24 h-24 object-cover"
-                />
-                <p>
-                  {student.surname} {student.name} {student.second_name}
-                </p>
-                <p>{`Группа ${
-                  grouplist.find((group) => group.id === student.group_id).name
-                }`}</p>
+                <p>{subject.name}</p>
+                <p>{groups.find((group) => subject.group_id === group.id).name}</p>
               </CardBody>
             </Card>
           ))
         ) : (
           <div></div>
         )}
-        <Card className={isStudentlistLoaded ? "min-h-52" : "hidden"}>
+        <Card className={isSubjectsLoaded ? "w-full" : "hidden"}>
           <CardHeader>
-            <h1 className="font-bold">Добавить студента</h1>
+            <h1 className="font-bold">Добавить группу</h1>
           </CardHeader>
           <CardBody>
             <Button>Добавить</Button>
           </CardBody>
         </Card>
-      </div>
+      </section>
 
       <Alert
         className="absolute bottom-3 left-3 w-96"
