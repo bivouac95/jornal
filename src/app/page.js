@@ -104,7 +104,13 @@ export default function Home() {
             <Button onPress={() => router.push("/subjects")}>Предметы</Button>
           </NavbarItem>
           <NavbarItem>
-            <Button onPress={() => supabase.auth.signOut()} color="danger">
+            <Button
+              onPress={() => {
+                supabase.auth.signOut();
+                router.push("/sign_in");
+              }}
+              color="danger"
+            >
               Выйти из аккаунта
             </Button>
           </NavbarItem>

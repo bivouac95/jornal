@@ -104,7 +104,13 @@ export default function Subjects() {
             <Button isDisabled={true}>Предметы</Button>
           </NavbarItem>
           <NavbarItem>
-            <Button onPress={() => supabase.auth.signOut()} color="danger">
+            <Button
+              onPress={() => {
+                supabase.auth.signOut();
+                router.push("/sign_in");
+              }}
+              color="danger"
+            >
               Выйти из аккаунта
             </Button>
           </NavbarItem>
@@ -139,7 +145,9 @@ export default function Subjects() {
               </CardHeader>
               <CardBody className="gap-2">
                 <p>{subject.name}</p>
-                <p>{groups.find((group) => subject.group_id === group.id).name}</p>
+                <p>
+                  {groups.find((group) => subject.group_id === group.id).name}
+                </p>
               </CardBody>
             </Card>
           ))
