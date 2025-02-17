@@ -1,6 +1,7 @@
 "use client";
 
 import supabase from "./supabase";
+import CreateStudent from "./components/create_student";
 import {
   Card,
   CardHeader,
@@ -136,7 +137,7 @@ export default function Home() {
             <Card key={student.id} className="min-h-52">
               <CardHeader>
                 <Link
-                  href={`/student/${student.id}`}
+                  href={`/student/${Number(student.id) ** 2 * 1375}`}
                   key={student.id}
                   className="w-full"
                 >
@@ -166,7 +167,7 @@ export default function Home() {
             <h1 className="font-bold">Добавить студента</h1>
           </CardHeader>
           <CardBody>
-            <Button>Добавить</Button>
+            <CreateStudent />
           </CardBody>
         </Card>
       </div>

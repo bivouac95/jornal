@@ -1,6 +1,8 @@
 "use client";
 
 import supabase from "../../supabase";
+import CreateMark from "../../components/create_mark";
+
 import {
   Card,
   CardHeader,
@@ -29,23 +31,34 @@ export default function Student() {
   const [group, setGroup] = useState({});
   const [marks, setMarks] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [studenID, setStudentID] = useState(undefined);
   const params = useParams();
 
   const router = useRouter();
+
+  useEffect(() => {
+    const getStudentID = async () => {
+      setStudentID(Math.sqrt(Number(params.id) / 1375));
+    };
+    getStudentID();
+  }, []);
+
   useEffect(() => {
     const getStudent = async () => {
-      const { data, error } = await supabase
-        .from("student")
-        .select("*")
-        .eq("id", params.id);
-      if (error) {
-        setErrorMessage(error.message);
-      } else if (data) {
-        setStudent(data[0]);
+      if (studenID != undefined) {
+        const { data, error } = await supabase
+          .from("student")
+          .select("*")
+          .eq("id", studenID);
+        if (error) {
+          setErrorMessage(error.message);
+        } else if (data) {
+          setStudent(data[0]);
+        }
       }
     };
     getStudent();
-  }, []);
+  }, [studenID]);
 
   useEffect(() => {
     const getGroup = async () => {
@@ -130,6 +143,7 @@ export default function Student() {
             ) : (
               <div className="h-6 w-48 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 animate-pulse rounded"></div>
             )}
+            <CreateMark student_id={student.id}/>
           </CardBody>
         </Card>
       </div>

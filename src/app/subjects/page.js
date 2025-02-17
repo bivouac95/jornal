@@ -1,6 +1,8 @@
 "use client";
 
 import supabase from "../supabase";
+import CreateSubject from "../components/create_subject";
+
 import {
   Card,
   CardHeader,
@@ -156,10 +158,10 @@ export default function Subjects() {
         )}
         <Card className={isSubjectsLoaded ? "w-full" : "hidden"}>
           <CardHeader>
-            <h1 className="font-bold">Добавить группу</h1>
+            <h1 className="font-bold">Добавить новую</h1>
           </CardHeader>
           <CardBody>
-            <Button>Добавить</Button>
+            <CreateSubject />
           </CardBody>
         </Card>
       </section>

@@ -1,6 +1,8 @@
 "use client";
 
 import supabase from "../supabase";
+import CreateGroup from "../components/create_group";
+
 import {
   Card,
   CardHeader,
@@ -142,7 +144,7 @@ export default function Home() {
             <h1 className="font-bold">Добавить группу</h1>
           </CardHeader>
           <CardBody>
-            <Button>Добавить</Button>
+            <CreateGroup />
           </CardBody>
         </Card>
       </section>
