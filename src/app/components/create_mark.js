@@ -15,9 +15,10 @@ import {
   DateInput,
 } from "@heroui/react";
 import { useState, useEffect } from "react";
+import {parseZonedDateTime, parseAbsoluteToLocal, parseDate} from "@internationalized/date";
 import supabase from "../supabase";
 
-export default function CreateMark({ student_id = undefined, subject_id = undefined }) {
+export default function CreateMark({ student_id = undefined, subject_id = undefined, small = false }) {
   const [open, setOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [groups, setGroups] = useState([]);
@@ -80,13 +81,12 @@ export default function CreateMark({ student_id = undefined, subject_id = undefi
       }
     };
     getStudents();
+    
     if (student_id != undefined) {
-      console.log(student_id);
       setIsStudentSet(true);
     }
 
     if (subject_id != undefined) {
-      console.log(subject_id);
       setIsSubjectSet(true);
     }
   }, []);
@@ -104,7 +104,7 @@ export default function CreateMark({ student_id = undefined, subject_id = undefi
 
   return (
     <>
-      <Button onPress={() => setOpen(true)}>Поставить оценку</Button>
+      <Button onPress={() => setOpen(true)} className={small ? "w-5 h-5 min-w-0 p-0" : ""}>{small ? "+" : "Поставить оценку"}</Button>
 
       <Modal isOpen={open} onClose={() => setOpen(false)} className="p-3">
         <ModalContent>
@@ -152,7 +152,7 @@ export default function CreateMark({ student_id = undefined, subject_id = undefi
                   1
                 </SelectItem>
               </Select>
-              <DateInput label="Дата" name="date" labelPlacement="outside" />
+              <DateInput label="Дата" name="date" labelPlacement="outside" defaultValue={parseDate(new Date().toISOString().slice(0, 10))} />
               <Divider className="my-3" />
               <Button type="submit">Подтвердить</Button>
               {errorMessage && <Alert type="danger">{errorMessage}</Alert>}

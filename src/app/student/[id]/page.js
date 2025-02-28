@@ -2,35 +2,38 @@
 
 import supabase from "../../supabase";
 import CreateMark from "../../components/create_mark";
+import Header from "../../components/heda";
 
 import {
   Card,
   CardHeader,
   CardBody,
-  CardFooter,
   Divider,
-  Link,
-  Image,
-  Input,
   Button,
   Alert,
-  Navbar,
-  NavbarContent,
-  NavbarItem,
+  Table,
+  TableHeader,
+  TableBody,
+  TableColumn,
+  TableRow,
+  TableCell,
 } from "@heroui/react";
 
 import { useState } from "react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
+import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer, YAxis } from "recharts";
 
 export default function Student() {
-  const [userId, setUserId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [student, setStudent] = useState({});
   const [group, setGroup] = useState({});
   const [marks, setMarks] = useState([]);
+  const [marksDates, setMarksDates] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isSubjectsLoaded, setIsSubjectsLoaded] = useState(false);
   const [studenID, setStudentID] = useState(undefined);
   const params = useParams();
 
@@ -38,7 +41,7 @@ export default function Student() {
 
   useEffect(() => {
     const getStudentID = async () => {
-      setStudentID(Math.sqrt(Number(params.id) / 1375));
+      setStudentID(params.id);
     };
     getStudentID();
   }, []);
@@ -86,31 +89,51 @@ export default function Student() {
       if (error) {
         setErrorMessage(error.message);
       } else if (data) {
-        let marks_data = data;
-        setMarks(marks_data.map((mark) => mark.value));
+        setMarks(data);
+        const dates = data.map((mark) => mark.date);
+        setMarksDates(Array.from(new Set(dates)));
         setIsLoaded(true);
       }
     };
+    const getSubjects = async () => {
+      console.log("get subjs");
+      const { data, error } = await supabase.from("subject").select("*");
+      if (error) {
+        setErrorMessage(error.message);
+      } else if (data) {
+        setSubjects(data);
+        setIsSubjectsLoaded(true);
+      }
+    };
+
     if (student.id !== undefined) {
       getMarks();
+      getSubjects();
     }
   }, [student]);
 
-  return (
-    <main className=" h-[85vh]">
-      <Navbar>
-        <NavbarContent>
-          <NavbarItem>
-            <p>Профиль студента</p>
-          </NavbarItem>
-          <NavbarItem>
-            <Button onPress={() => router.back()}>Вернуться назад</Button>
-          </NavbarItem>
-        </NavbarContent>
-      </Navbar>
+  const getMedian = () => {
+    let medians = [];
+    if (marksDates.length > 0) {
+      for (let i = 0; i < marksDates.length; i++) {
+        let marksByDate = marks.filter(
+          (mark) => new Date(mark.date) <= new Date(marksDates[i])
+        );
+        medians.push({
+          Дата: new Date(marksDates[i]).toLocaleDateString("ru-RU"),
+          "Средний балл":
+            (marksByDate.reduce((a, b) => a + b.value, 0) / marksByDate.length).toFixed(2),
+        });
+      }
+    }
+    return medians;
+  };
 
-      <div className="flex justify-center items-center w-screen h-full">
-        <Card>
+  return (
+    <div className="flex flex-col items-center">
+      <Header />
+      <main className="w-full max-w-[1350px] grid grid-cols-3 gap-4 p-4 box-border">
+        <Card className="col-span-1">
           <CardHeader>
             {isLoaded ? (
               <p className="text-2xl">
@@ -123,6 +146,7 @@ export default function Student() {
 
           <Divider />
           <CardBody className="flex gap-4">
+            <Button onPress={() => router.back()}>Вернуться назад</Button>
             <img
               src={isLoaded ? student.photo_url : null}
               alt=""
@@ -137,24 +161,91 @@ export default function Student() {
             {isLoaded ? (
               <p>{`Средняя оценка: ${
                 marks.length !== 0
-                  ? marks.reduce((a, b) => a + b, 0) / marks.length
+                  ? (
+                      marks.reduce((a, b) => a + b.value, 0) / marks.length
+                    ).toFixed(1)
                   : 0
               }`}</p>
             ) : (
               <div className="h-6 w-48 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 animate-pulse rounded"></div>
             )}
-            <CreateMark student_id={student.id}/>
+            <CreateMark student_id={1} />
           </CardBody>
         </Card>
-      </div>
+        <div className="col-span-2 flex flex-col gap-4">
+          {isSubjectsLoaded && isLoaded ? (
+            <div className="h-min col-span-2 overflow-x-scroll">
+              <Table className="min-w-full" aria-label="Оценки студента">
+                <TableHeader>
+                  <TableColumn>Предмет</TableColumn>
+                  {marksDates.map((date) => (
+                    <TableColumn key={date}>
+                      {new Date(date).toLocaleDateString("ru-RU")}
+                    </TableColumn>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {subjects.map((subject) => (
+                    <TableRow key={subject.id}>
+                      <TableCell className="text-[16px]">
+                        {subject.name}
+                      </TableCell>
+                      {marksDates.map((date) => (
+                        <TableCell
+                          key={date + subject.id + student.id + "mark"}
+                        >
+                          {marks.find(
+                            (mark) =>
+                              mark.date === date &&
+                              mark.subject_id === subject.id &&
+                              mark.student_id === student.id
+                          )
+                            ? marks.find(
+                                (mark) =>
+                                  mark.date === date &&
+                                  mark.subject_id === subject.id &&
+                                  mark.student_id === student.id
+                              ).value
+                            : ""}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <></>
+          )}
 
-      <Alert
-        className="absolute bottom-3 left-3 w-96"
-        color="danger"
-        isVisible={errorMessage !== ""}
-      >
-        <p>{errorMessage}</p>
-      </Alert>
-    </main>
+          {isLoaded && (
+            <Card className="h-96 w-full">
+              <CardHeader>
+                Динамика среднего балла
+              </CardHeader>
+              <Divider />
+              <CardBody className="p-4 flex box-border">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart width={100} height={100} data={getMedian()}>
+                    <Line dataKey={"Средний балл"} />
+                    <XAxis dataKey={"Дата"} />
+                    <YAxis domain={[0, 5]} tickCount={6}/>
+                    <Tooltip />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardBody>
+            </Card>
+          )}
+        </div>
+
+        <Alert
+          className="absolute bottom-3 left-3 w-96"
+          color="danger"
+          isVisible={errorMessage !== ""}
+        >
+          <p>{errorMessage}</p>
+        </Alert>
+      </main>
+    </div>
   );
 }

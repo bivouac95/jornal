@@ -32,8 +32,6 @@ export default function CreateStudent() {
     // } else {
     //   setOpen(false);
     // }
-
-    console.log(data);
   };
 
   useEffect(() => {
